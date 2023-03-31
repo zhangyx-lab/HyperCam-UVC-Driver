@@ -10,7 +10,7 @@ from util.print import cprint
 from util.kwargs import kwargs
 from util.param import RANGE
 from util.param import CaptureDescriptor
-import util.execute
+from execute import fullBandPreview, calibrateExposure, directCapture
 
 
 frame = None
@@ -27,11 +27,11 @@ def execute(out=None, exp=None, led=None, pwm=None, gain=0, stack=0, peak_bri=0.
     )
     # Perform capture
     if desc.led is None:
-        frame = util.execute.fullBandPreview(stack)
+        frame = fullBandPreview(stack)
     elif desc.exp is None or desc.pwm is None:
-        frame = util.execute.calibrateExposure(desc, peak_bri)
+        frame = calibrateExposure(desc, peak_bri)
     else:
-        frame = util.execute.directCapture(desc)
+        frame = directCapture(desc)
     # Check for frame availablity
     if frame is None:
         return
@@ -46,7 +46,7 @@ def execute(out=None, exp=None, led=None, pwm=None, gain=0, stack=0, peak_bri=0.
 if command is not None:
     execute(**kwargs(command))
 else:
-    print("[READY]")
+    print("[STANDBY]")
     while True:
         line = sys.stdin.readline()
         if len(line) == 0:
@@ -63,7 +63,7 @@ else:
 
 if WIN_NAME is not None:
     cprint("Press anykey to exit")
-    if util.execute.user_key[0] < 0:
+    if execute.user_key[0] < 0:
         cv2.waitKey(0)
     cv2.destroyAllWindows()
     cv2.waitKey(1)

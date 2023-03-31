@@ -82,11 +82,11 @@ class CaptureDescriptor(NamedTuple):
 
     def write(self, file: TextIOWrapper):
         file.writelines([
-            f"led   = {self.led}\n",
+            # f"led   = {self.led}\n",
             f"pwm   = {self.pwm}\n",
             f"exp   = {self.exp}\n",
             f"gain  = {self.gain}\n",
-            f"stack = {self.stack}\n",
+            # f"stack = {self.stack}\n",
         ])
 
     def __str__(self):

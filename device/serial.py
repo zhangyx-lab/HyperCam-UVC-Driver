@@ -12,7 +12,7 @@ serial = Serial(path)
 ASSERT(serial.is_open, f"Unable to open serial device {path}")
 
 
-def serial_write(*args: list[int]):
+def serial_write(*args):
     payload = [0, 0]
     for arg in args:
         payload += arg

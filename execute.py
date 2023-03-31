@@ -1,4 +1,5 @@
 # Python Modules
+from sys import stdout
 # PIP Packages
 import numpy as np
 # Project Packages
@@ -43,52 +44,51 @@ def calibrateExposure(desc: CaptureDescriptor, peak_bri: float) -> np.ndarray:
     prev_desc: CaptureDescriptor = None
     prev_frame: np.ndarray = None
     clearCam()
-    with open(VAR / f"cal_led_{desc.led}.txt", "w") as file:
-        while True:
-            # Update parameters
-            serial_write([desc.led, desc.pwm])
-            manualExposure.set(desc.exp)
-            # Capture frame
-            frame = capture(desc.stack, desc.gain)
-            # Check for brightness
-            peak = peak._replace(current=peakBrightness(frame))
-            cprint(f"Calibrate: {desc} => Peak {peak.current:.4f}")
-            # Compare with previous
-            # open(VAR / f"cal_led_{desc.led}.txt", "w")
-            converge, val = peak.validate()
-            if converge:
-                if desc.stack < 10:
-                    # Set stack to 5 and fine tune the result
-                    desc = desc._replace(stack=10)
-                    peak = peak._replace(previous=None)
-                    prev_desc = None
-                    prev_frame = None
-                elif val == 0:
-                    cprint(f"Calibration done: {prev_desc}")
-                    prev_desc.write(file)
-                    return prev_frame
-                else:
-                    ASSERT(val == 1)
-                    cprint(f"Calibration done: {desc}")
-                    desc.write(file)
-                    return frame
+    while True:
+        # Update parameters
+        serial_write([desc.led, desc.pwm])
+        manualExposure.set(desc.exp)
+        # Capture frame
+        frame = capture(desc.stack, desc.gain)
+        # Check for brightness
+        peak = peak._replace(current=peakBrightness(frame))
+        cprint(f"Calibrate: {desc} => Peak {peak.current:.4f}")
+        # Compare with previous
+        # open(VAR / f"cal_led_{desc.led}.txt", "w")
+        converge, val = peak.validate()
+        if converge:
+            if desc.stack < 10:
+                # Set stack to 5 and fine tune the result
+                desc = desc._replace(stack=10)
+                peak = peak._replace(previous=None)
+                prev_desc = None
+                prev_frame = None
+            elif val == 0:
+                cprint(f"Calibration done: {prev_desc}")
+                prev_desc.write(stdout)
+                return prev_frame
             else:
-                # Not yet converged
-                ASSERT(val != 0)
-                # Prepare for next iteration
-                peak = peak._replace(previous=peak.current)
-                prev_frame = frame
-                prev_desc = desc
-                # iterate descriptor
-                desc = desc.adjust(val)
-                if desc is None:
-                    ASSERT(
-                        False,
-                        f"Unable to converage, stopping at {prev_desc}",
-                        crash=False
-                    )
-                    prev_desc.write(file)
-                    return prev_frame
+                ASSERT(val == 1)
+                cprint(f"Calibration done: {desc}")
+                desc.write(stdout)
+                return frame
+        else:
+            # Not yet converged
+            ASSERT(val != 0)
+            # Prepare for next iteration
+            peak = peak._replace(previous=peak.current)
+            prev_frame = frame
+            prev_desc = desc
+            # iterate descriptor
+            desc = desc.adjust(val)
+            if desc is None:
+                ASSERT(
+                    False,
+                    f"Unable to converage, stopping at {prev_desc}",
+                    crash=False
+                )
+                prev_desc.write()
+                return prev_frame
 
 
 def fullBandPreview(stack: int = 1):
