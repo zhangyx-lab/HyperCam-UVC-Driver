@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import NamedTuple
 from io import TextIOWrapper
+import math
 # PIP Packages
 import numpy as np
 # Range limits
@@ -79,6 +80,17 @@ class CaptureDescriptor(NamedTuple):
                 return None
         else:
             return None
+        
+    def matchGain(self, current, target) -> CaptureDescriptor:
+        if current > target:
+            # Do nothing
+            return None
+        elif current == target:
+            return self
+        else:
+            delta_bri = target - current
+            gain = 1000 * delta_bri / current
+            return self._replace(gain=math.floor(gain))
 
     def write(self, file: TextIOWrapper):
         file.writelines([

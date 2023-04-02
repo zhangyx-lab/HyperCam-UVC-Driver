@@ -16,7 +16,7 @@ from execute import fullBandPreview, calibrateExposure, directCapture
 frame = None
 
 
-def execute(out=None, exp=None, led=None, pwm=None, gain=0, stack=0, peak_bri=0.8):
+def execute(out=None, exp=None, led=None, pwm=None, gain=0, stack=0, peak_bri=0.6):
     global frame
     desc = CaptureDescriptor(
         led=normalizeInt(led, RANGE["LED"], "LED index"),

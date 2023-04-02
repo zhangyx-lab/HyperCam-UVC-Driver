@@ -78,7 +78,7 @@ def camera_read() -> np.ndarray:
     return frame
 
 
-def capture(stack: int = 1, gain: int = 0, grab: int = 0) -> np.ndarray:
+def capture(stack: int = 1, gain: int = 0, grab: int = 1) -> np.ndarray:
     ASSERT(stack >= 0, f"Illegal stack number {stack}")
     # Remove current frame
     for _ in range(grab):
@@ -88,7 +88,8 @@ def capture(stack: int = 1, gain: int = 0, grab: int = 0) -> np.ndarray:
     stack = np.concatenate([camera_read() for _ in range(int(stack))], axis=2)
     img = np.average(stack, axis=2)
     scale = 0xFF * (1.0 + gain / 1000)
-    img = np.rint(img * scale).astype(np.uint16)
+    img = np.minimum(np.rint(img * scale), ~np.zeros(img.shape, dtype=np.uint16))
+    img = img.astype(np.uint16)
     if WIN_NAME is not None:
         cv2.imshow(WIN_NAME, img)
         user_key[0] = cv2.waitKey(1)

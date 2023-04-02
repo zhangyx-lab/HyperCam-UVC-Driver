@@ -61,15 +61,23 @@ def calibrateExposure(desc: CaptureDescriptor, peak_bri: float) -> np.ndarray:
                 peak = peak._replace(previous=None)
                 prev_desc = None
                 prev_frame = None
-            elif val == 0:
-                cprint(f"Calibration done: {prev_desc}")
-                prev_desc.write(stdout)
-                return prev_frame
+            elif peak.current > peak.target:
+                # Tune the peak back to just lower than target
+                peak = peak._replace(previous=None)
+                prev_desc = None
+                prev_frame = None
             else:
-                ASSERT(val == 1)
-                cprint(f"Calibration done: {desc}")
-                desc.write(stdout)
-                return frame
+                result = (
+                    desc.matchGain(peak.current, peak.target)
+                    or
+                    prev_desc.matchGain(peak.previous, peak.target)
+                )
+                cprint(f"Calibration done: {result}")
+                result.write(stdout)
+                manualExposure.set(desc.exp)
+                frame = capture(result.stack, result.gain)
+                cprint(f"Final result peak brightness {peakBrightness(frame)}")
+                return frame if val else prev_frame
         else:
             # Not yet converged
             ASSERT(val != 0)
