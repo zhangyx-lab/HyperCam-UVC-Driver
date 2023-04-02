@@ -6,7 +6,7 @@ from io import TextIOWrapper
 import numpy as np
 # Range limits
 RANGE = {
-    "EXP": [100, 150],
+    "EXP": [50, 150],
     "LED": [1, 8],
     "PWM": [0, 255],
     "GAIN": [0, 100]
@@ -107,12 +107,12 @@ CaptureDescriptor.__new__.__defaults__ = (None, 0xFF, 0, 0, 1)
 
 CALIB_INIT: list[CaptureDescriptor] = [
     None,
-    CaptureDescriptor(pwm=0, exp=100),  # UV
-    CaptureDescriptor(pwm=0, exp=100),  # BLUE
-    CaptureDescriptor(pwm=0, exp=100),  # GREEN
-    CaptureDescriptor(pwm=0, exp=100),  # YG
-    CaptureDescriptor(pwm=0, exp=100),  # YELLOW
-    CaptureDescriptor(pwm=0, exp=100),  # ORANGE
-    CaptureDescriptor(pwm=0, exp=100),  # RED
-    CaptureDescriptor(pwm=0, exp=100),  # IR
+    CaptureDescriptor(pwm=0x00, exp=50),  # UV
+    CaptureDescriptor(pwm=0x00, exp=50),  # BLUE
+    CaptureDescriptor(pwm=0x00, exp=50),  # GREEN
+    CaptureDescriptor(pwm=0xFF, exp=50),  # YG
+    CaptureDescriptor(pwm=0x00, exp=50),  # YELLOW
+    CaptureDescriptor(pwm=0x00, exp=50),  # ORANGE
+    CaptureDescriptor(pwm=0x00, exp=50),  # RED
+    CaptureDescriptor(pwm=0x00, exp=50),  # IR
 ]

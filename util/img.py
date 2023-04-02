@@ -2,7 +2,7 @@ import numpy as np
 from util.ASSERT import ASSERT
 
 
-def peakBrightness(img: np.ndarray, r: list = [0.95, 0.96]) -> float:
+def peakBrightness(img: np.ndarray, r: list = [0.8, 0.9]) -> float:
     flat = np.sort(img.reshape((-1,)))
     l, r = np.rint(np.sort(r) * len(flat)).astype(np.uint)
     ASSERT(l >= 0 and r <= len(flat), f"Index out of range: <{l}, {r}>")

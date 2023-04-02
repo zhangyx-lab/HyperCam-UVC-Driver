@@ -15,20 +15,17 @@ from util.param import PeakData, CaptureDescriptor, CALIB_INIT
 
 def clearCam(threshold: float = 0.2):
     serial_write(SOFT_RST)
-    manualExposure.set(1)
     while peakBrightness(capture(1, 0, 0)) >= threshold:
-        cprint(peakBrightness(capture(1, 0, 0)))
+        cprint("Peak brightness", peakBrightness(capture(1, 0, 0)))
         pass
 
 
 def directCapture(desc: CaptureDescriptor) -> np.ndarray:
     cprint(f"Capture: {desc}")
+    serial_write(SOFT_RST)
     manualExposure.set(desc.exp)
-    serial_write(
-        SOFT_RST,
-        [desc.led, desc.pwm]
-    )
-    frame = capture(desc.stack, desc.gain)
+    serial_write([desc.led, desc.pwm])
+    frame = capture(desc.stack, desc.gain, 10)
     # Reset the LED module before reutrning
     serial_write(SOFT_RST)
     return frame
@@ -43,6 +40,7 @@ def calibrateExposure(desc: CaptureDescriptor, peak_bri: float) -> np.ndarray:
         desc = desc._replace(pwm=CALIB_INIT[desc.led].pwm)
     prev_desc: CaptureDescriptor = None
     prev_frame: np.ndarray = None
+    manualExposure.set(desc.exp)
     clearCam()
     while True:
         # Update parameters

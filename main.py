@@ -16,7 +16,7 @@ from execute import fullBandPreview, calibrateExposure, directCapture
 frame = None
 
 
-def execute(out=None, exp=None, led=None, pwm=None, gain=0, stack=0, peak_bri=0.9):
+def execute(out=None, exp=None, led=None, pwm=None, gain=0, stack=0, peak_bri=0.8):
     global frame
     desc = CaptureDescriptor(
         led=normalizeInt(led, RANGE["LED"], "LED index"),
@@ -54,7 +54,11 @@ else:
         else:
             line = line[:-1]
         time_start = time.time_ns()
-        execute(**kwargs(line))
+        try:
+            execute(**kwargs(line))
+        except:
+            print("[ABORTED]")
+            continue
         time_end = time.time_ns()
         print("[COMPLETE]")
         duration = float(time_end - time_start) / 1e6
