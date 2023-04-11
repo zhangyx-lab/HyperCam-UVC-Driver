@@ -12,8 +12,8 @@ serial = Serial(path)
 ASSERT(serial.is_open, f"Unable to open serial device {path}")
 
 
-def serial_write(*args):
-    payload = [0, 0]
+def serial_write(*args, prefix=[0, 0]):
+    payload = prefix
     for arg in args:
         payload += arg
     serial.write(bytes(payload))
@@ -21,11 +21,12 @@ def serial_write(*args):
 
 SOFT_RST = [0xFF, 0x00]
 HARD_RST = [0xFF, 0xFF]
-DFU_MAGIC = [0xFF, 0xAA]
+DFU_MAGIC = [0xFE, 0xFE]
 
-serial_write(SOFT_RST)
 
-atexit.register(
-    serial_write,
-    HARD_RST if hard_reset_on_exit else SOFT_RST
-)
+def init():
+    serial_write(SOFT_RST)
+    atexit.register(
+        serial_write,
+        HARD_RST if hard_reset_on_exit else SOFT_RST
+    )

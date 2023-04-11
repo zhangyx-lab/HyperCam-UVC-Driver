@@ -8,10 +8,11 @@ from util.env import WIN_NAME, command
 from util.norm import normalizeInt
 from util.print import cprint
 from util.kwargs import kwargs
-from util.param import RANGE
-from util.param import CaptureDescriptor
+from util.param import RANGE, CaptureDescriptor
+from device.serial import init as serial_init
 from execute import fullBandPreview, calibrateExposure, directCapture
 
+serial_init()
 
 frame = None
 
