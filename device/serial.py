@@ -21,8 +21,9 @@ def serial_write(*args):
 
 SOFT_RST = [0xFF, 0x00]
 HARD_RST = [0xFF, 0xFF]
+DFU_MAGIC = [0xFF, 0xAA]
 
-serial_write([0xFF, 0x00])
+serial_write(SOFT_RST)
 
 atexit.register(
     serial_write,
