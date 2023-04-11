@@ -9,6 +9,7 @@ from util.norm import normalizeInt
 from util.print import cprint
 from util.kwargs import kwargs
 from util.param import RANGE, CaptureDescriptor
+from util.print import eprint
 from device.serial import init as serial_init
 from execute import fullBandPreview, calibrateExposure, directCapture
 
@@ -17,7 +18,7 @@ serial_init()
 frame = None
 
 
-def execute(out=None, exp=None, led=None, pwm=None, gain=0, stack=0, peak_bri=0.8):
+def execute(out=None, exp=None, led=None, pwm=None, gain=0, stack=5, peak_bri=0.8):
     global frame
     desc = CaptureDescriptor(
         led=normalizeInt(led, RANGE["LED"], "LED index"),
@@ -28,7 +29,7 @@ def execute(out=None, exp=None, led=None, pwm=None, gain=0, stack=0, peak_bri=0.
     )
     # Perform capture
     if desc.led is None:
-        frame = fullBandPreview(stack)
+        frame = fullBandPreview(stack, float(peak_bri))
     elif desc.exp is None or desc.pwm is None:
         frame = calibrateExposure(desc, float(peak_bri))
     else:
@@ -57,7 +58,8 @@ else:
         time_start = time.time_ns()
         try:
             execute(**kwargs(line))
-        except:
+        except Exception as e:
+            eprint(str(e))
             print("[ABORTED]")
             continue
         time_end = time.time_ns()

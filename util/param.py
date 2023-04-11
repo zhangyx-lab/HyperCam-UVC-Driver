@@ -1,5 +1,6 @@
 # Python Modules
 from __future__ import annotations
+import sys
 from typing import NamedTuple
 from io import TextIOWrapper
 import math
@@ -92,12 +93,13 @@ class CaptureDescriptor(NamedTuple):
             gain = 1000 * delta_bri / current
             return self._replace(gain=math.floor(gain))
 
-    def write(self, file: TextIOWrapper):
+    def write(self, file: TextIOWrapper = sys.stdout):
         file.writelines([
             # f"led   = {self.led}\n",
             f"pwm   = {self.pwm}\n",
             f"exp   = {self.exp}\n",
             f"gain  = {self.gain}\n",
+            f"stack = {self.stack}\n",
             # f"stack = {self.stack}\n",
         ])
 
@@ -122,7 +124,7 @@ CALIB_INIT: list[CaptureDescriptor] = [
     CaptureDescriptor(pwm=0x00, exp=50),  # UV
     CaptureDescriptor(pwm=0x00, exp=50),  # BLUE
     CaptureDescriptor(pwm=0x00, exp=50),  # GREEN
-    CaptureDescriptor(pwm=0xFF, exp=50),  # YG
+    CaptureDescriptor(pwm=0xFF, exp=150, gain=200),  # YG
     CaptureDescriptor(pwm=0x00, exp=50),  # YELLOW
     CaptureDescriptor(pwm=0x00, exp=50),  # ORANGE
     CaptureDescriptor(pwm=0x00, exp=50),  # RED

@@ -2,6 +2,7 @@
 import numpy as np
 import cv2
 # Project Packages
+import cvtb
 from util.env import WIN_NAME, video_device, locateDeviceOptional
 from util.print import cprint
 from util.ASSERT import ASSERT
@@ -85,11 +86,10 @@ def capture(stack: int = 1, gain: int = 0, grab: int = 1) -> np.ndarray:
         camera.grab()
     if stack == 0:
         return np.zeros(frame_size, dtype=np.uint16)
-    stack = np.concatenate([camera_read() for _ in range(int(stack))], axis=2)
-    img = np.average(stack, axis=2)
-    scale = 0xFF * (1.0 + gain / 1000)
-    img = np.minimum(np.rint(img * scale), ~np.zeros(img.shape, dtype=np.uint16))
-    img = img.astype(np.uint16)
+    stack = [camera_read() for _ in range(int(stack))]
+    stack = cvtb.types.F16(np.concatenate(stack, axis=2))
+    img = cvtb.spectral.gray()(stack) * (1.0 + gain / 100)
+    img = cvtb.types.U16(img)
     if WIN_NAME is not None:
         cv2.imshow(WIN_NAME, img)
         user_key[0] = cv2.waitKey(1)

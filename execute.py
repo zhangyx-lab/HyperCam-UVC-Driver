@@ -9,7 +9,7 @@ from util.ASSERT import ASSERT
 from util.env import WIN_NAME, VAR
 from util.print import cprint
 from util.img import peakBrightness
-from util.param import PeakData, CaptureDescriptor, CALIB_INIT
+from util.param import PeakData, CaptureDescriptor, CALIB_INIT, RANGE
 
 
 
@@ -22,10 +22,10 @@ def clearCam(threshold: float = 0.2):
 
 def directCapture(desc: CaptureDescriptor) -> np.ndarray:
     cprint(f"Capture: {desc}")
-    serial_write(SOFT_RST)
+    serial_write(SOFT_RST, [desc.led, desc.pwm])
     manualExposure.set(desc.exp)
-    serial_write([desc.led, desc.pwm])
-    frame = capture(desc.stack, desc.gain, 10)
+    desc.write()
+    frame = capture(desc.stack, desc.gain, 1)
     # Reset the LED module before reutrning
     serial_write(SOFT_RST)
     return frame
@@ -42,6 +42,7 @@ def calibrateExposure(desc: CaptureDescriptor, peak_bri: float) -> np.ndarray:
     prev_frame: np.ndarray = None
     manualExposure.set(desc.exp)
     clearCam()
+    serial_write(SOFT_RST)
     while True:
         # Update parameters
         serial_write([desc.led, desc.pwm])
@@ -73,7 +74,7 @@ def calibrateExposure(desc: CaptureDescriptor, peak_bri: float) -> np.ndarray:
                     prev_desc.matchGain(peak.previous, peak.target)
                 )
                 cprint(f"Calibration done: {result}")
-                result.write(stdout)
+                result.write()
                 manualExposure.set(desc.exp)
                 frame = capture(result.stack, result.gain)
                 cprint(f"Final result peak brightness {peakBrightness(frame)}")
@@ -97,27 +98,34 @@ def calibrateExposure(desc: CaptureDescriptor, peak_bri: float) -> np.ndarray:
                 return prev_frame
 
 
-def fullBandPreview(stack: int = 1):
+preview_ae = 10
+preview_br = None
+
+def fullBandPreview(stack: int = 1, peak_bri: float = 0.9):
     cprint("Entering Full Band Preview")
     # Turn on all LEDs that are harmless to human eyes
     serial_write(
         SOFT_RST,
         [1, 0x00],  # UV Disabled
-        [2, 0x20],  # BLUE
-        [3, 0x60],  # GREEN
-        [4, 0xF0],
-        [5, 0x80],
-        [6, 0x60],
-        [7, 0x10],  # RED
-        [8, 0x10],  # IR
+        [2, 0x10],  # BLUE
+        [3, 0x30],  # GREEN
+        [4, 0x80],
+        [5, 0x40],
+        [6, 0x30],
+        [7, 0x08],  # RED
+        [8, 0x00],  # IR
     )
-    # Auto Exposure is enforced in this mode
-    with manualExposure.disable():
-        if WIN_NAME is not None:
-            frame = None
-            while user_key[0] < 0:
-                frame = capture(stack, 0)
-            return frame
-        else:
-            # Capture a frame
-            return capture(stack)
+    # Determine next exposure value
+    global preview_ae, preview_br
+    if preview_br is not None:
+        if preview_ae < peak_bri and preview_br < RANGE["EXP"][1]:
+            preview_ae += 1
+        elif preview_ae > peak_bri and preview_br > 1:
+            preview_ae -= 1
+    # Update exposure value
+    manualExposure.set(preview_ae)
+    frame = capture(1, 0, 0)
+    preview_br = peakBrightness(frame)
+    cprint(f"EXP {preview_ae}, peak_bri = {preview_br}")
+    # Return this frame
+    return frame
